@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model College {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  city         String
+  state        String
+  type         CollegeType
+  streams      String[]
+  nirf_rank    Int?
+  established  Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  courseFees       CourseFee[]
+  placementStats   PlacementStat[]
+  admissionCutoffs AdmissionCutoff[]
+
+  @@index([state])
+  @@index([type])
+  @@index([nirf_rank])
+  @@map("colleges")
+}
+
+model CourseFee {
+  id         String  @id @default(cuid())
+  college_id String
+  course     String
+  degree     DegreeType
+  annual_fee Int
+
+  college College @relation(fields: [college_id], references: [id], onDelete: Cascade)
+
+  @@index([college_id])
+  @@index([degree])
+  @@map("course_fees")
+}
+
+model PlacementStat {
+  id              String   @id @default(cuid())
+  college_id      String
+  year            Int
+  avg_pkg         Float
+  max_pkg         Float
+  placement_pct   Float
+  top_recruiters  String[]
+
+  college College @relation(fields: [college_id], references: [id], onDelete: Cascade)
+
+  @@unique([college_id, year])
+  @@index([college_id])
+  @@index([year])
+  @@map("placement_stats")
+}
+
+model AdmissionCutoff {
+  id           String       @id @default(cuid())
+  college_id   String
+  exam         ExamType
+  year         Int
+  category     CategoryType
+  cutoff_value Float
+
+  college College @relation(fields: [college_id], references: [id], onDelete: Cascade)
+
+  @@unique([college_id, exam, year, category])
+  @@index([college_id])
+  @@index([exam])
+  @@index([year])
+  @@map("admission_cutoffs")
+}
+
+enum CollegeType {
+  IIT
+  NIT
+  IIIT
+  BITS
+  Government
+  Private
+  Deemed
+  Central_University
+  State_University
+}
+
+enum DegreeType {
+  BTech
+  MTech
+  MBA
+  MCA
+  MBBS
+  MD
+  BCA
+  BSc
+  MSc
+  BArch
+  MArch
+  BPharm
+  MPharm
+  PhD
+  BBA
+  BCom
+  MCom
+  BA
+  MA
+  LLB
+  LLM
+}
+
+enum ExamType {
+  JEE_Main
+  JEE_Advanced
+  NEET
+  CAT
+  GATE
+  XAT
+  CLAT
+  BITSAT
+  VITEEE
+  MHT_CET
+  KCET
+  WBJEE
+  COMEDK
+  SNAP
+  MAT
+}
+
+enum CategoryType {
+  General
+  OBC
+  SC
+  ST
+  EWS
+  PwD
+}
